@@ -48,7 +48,7 @@ if errorlevel 1 exit 1
 
 conda update conda
 if errorlevel 1 exit 1
-conda install conda-build anaconda-client
+conda install conda-build=3.1.6 anaconda-client
 if errorlevel 1 exit 1
 
 for /f %%i in ('python python_version.py') DO (set PYTHON_VERSION=%%i)
