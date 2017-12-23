@@ -1,4 +1,31 @@
+:: Copyright [2017-2018] UMR MISTEA INRA, UMR LEPSE INRA,                ::
+::                       UMR AGAP CIRAD, EPI Virtual Plants Inria        ::
+::                                                                       ::
+:: This file is part of the StatisKit project. More information can be   ::
+:: found at                                                              ::
+::                                                                       ::
+::     http://autowig.rtfd.io                                            ::
+::                                                                       ::
+:: The Apache Software Foundation (ASF) licenses this file to you under  ::
+:: the Apache License, Version 2.0 (the "License"); you may not use this ::
+:: file except in compliance with the License. You should have received  ::
+:: a copy of the Apache License, Version 2.0 along with this file; see   ::
+:: the file LICENSE. If not, you may obtain a copy of the License at     ::
+::                                                                       ::
+::     http://www.apache.org/licenses/LICENSE-2.0                        ::
+::                                                                       ::
+:: Unless required by applicable law or agreed to in writing, software   ::
+:: distributed under the License is distributed on an "AS IS" BASIS,     ::
+:: WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or       ::
+:: mplied. See the License for the specific language governing           ::
+:: permissions and limitations under the License.                        ::
+
 echo ON
+
+set "CWD_VAR=%cd%"
+cd %APPVEYOR_BUILD_FOLDER%
+git submodule update --init --recursive
+cd %CWD_VAR%
 
 if "%CONDA_VERSION%" == "" (
   set CONDA_VERSION=2
@@ -16,6 +43,10 @@ if "%ANACONDA_DEPLOY%" == "" (
     ) else (
         set ANACONDA_DEPLOY=false
     )
+)
+
+if "%ANACONDA_RELEASE%" == "" (
+    set ANACONDA_RELEASE=false
 )
 
 if "%ANACONDA_LABEL%" == "" (
@@ -43,29 +74,27 @@ if not "%ANACONDA_CHANNELS%"=="" (
   conda config --add channels %ANACONDA_CHANNELS%
   if errorlevel 1 exit 1
 )
-call config.bat
+conda config --set always_yes yes
 if errorlevel 1 exit 1
 
 conda update conda
 if errorlevel 1 exit 1
 conda install conda-build anaconda-client
 if errorlevel 1 exit 1
-
-for /f %%i in ('python python_version.py') DO (set PYTHON_VERSION=%%i)
+if "%ANACONDA_LABEL%" == "release" (
+  python release.py
+  if errorlevel 1 exit 1
+)
+call config.bat
 if errorlevel 1 exit 1
 
-set MAJOR_PYTHON_VERSION=%PYTHON_VERSION:~0,1%
+for /f %%i in ('python major_python_version.py') DO (set MAJOR_PYTHON_VERSION=%%i)
+if errorlevel 1 exit 1
 
-if "%PYTHON_VERSION:~2,1%" == "" (
-    :: PYTHON_VERSION style, such as 27, 34 etc.
-    set MINOR_PYTHON_VERSION=%PYTHON_VERSION:~1,1%
-) else (
-    if "%PYTHON_VERSION:~3,1%" == "." (
-     set MINOR_PYTHON_VERSION=%PYTHON_VERSION:~2,1%
-    ) else (
-     set MINOR_PYTHON_VERSION=%PYTHON_VERSION:~2,2%
-    )
-)
+for /f %%i in ('python minor_python_version.py') DO (set MINOR_PYTHON_VERSION=%%i)
+if errorlevel 1 exit 1
+
+set PYTHON_VERSION=%MAJOR_PYTHON_VERSION%.%MINOR_PYTHON_VERSION%
 
 set CMD_IN_ENV=cmd /E:ON /V:ON /C %cd%\\cmd_in_env.cmd
 if errorlevel 1 exit 1
