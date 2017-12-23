@@ -80,7 +80,7 @@ if errorlevel 1 exit 1
 conda update conda
 if errorlevel 1 exit 1
 conda install conda-build anaconda-client
-if errorlevel 1 exit 1
+rem if errorlevel 1 exit 1
 if "%ANACONDA_LABEL%" == "release" (
   python release.py
   if errorlevel 1 exit 1
@@ -95,6 +95,7 @@ for /f %%i in ('python minor_python_version.py') DO (set MINOR_PYTHON_VERSION=%%
 if errorlevel 1 exit 1
 
 set PYTHON_VERSION=%MAJOR_PYTHON_VERSION%.%MINOR_PYTHON_VERSION%
+if errorlevel 1 exit 1
 
 set CMD_IN_ENV=cmd /E:ON /V:ON /C %cd%\\cmd_in_env.cmd
 if errorlevel 1 exit 1
