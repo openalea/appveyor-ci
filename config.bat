@@ -20,55 +20,32 @@
 :: mplied. See the License for the specific language governing           ::
 :: permissions and limitations under the License.                        ::
 
-setlocal EnableDelayedExpansion
-if "%ANACONDA_UPLOAD%" == "openalea" (
-  if "%ANACONDA_LABEL%" == "release" (
-    if not "%APPVEYOR_REPO_BRANCH%" == "master" (
-        set ANACONDA_LABEL_TMP=unstable
-    )
-  )
+if "%ANACONDA_UPLOAD%" == "openalea" if not "%ANACONDA_LABEL%" == "release" if not "%ANACONDA_LABEL%" == "unstable" (
+    echo "Variable ANACONDA_LABEL set to '%ANACONDA_LABEL%' instead of 'release' or 'unstable'"
+    exit 1
 )
-if "!ANACONDA_LABEL_TMP!" == "" (
-    set ANACONDA_LABEL_TMP=%ANACONDA_LABEL%
-)
-
-echo !ANACONDA_LABEL_TMP!
-
-if "%ANACONDA_UPLOAD%" == "openalea" (
-  if not "!ANACONDA_LABEL_TMP!" == "release" ( 
-    if not "!ANACONDA_LABEL_TMP!" == "unstable" (
-      echo "Variable ANACONDA_LABEL set to '!ANACONDA_LABEL_TMP!' instead of 'release' or 'unstable'"
-      exit 1
-    )
-  )
-  if not "!ANACONDA_LABEL_TMP!" == "unstable" ( 
-    if not "!ANACONDA_LABEL_TMP!" == "release" (
-      echo "Variable ANACONDA_LABEL set to '!ANACONDA_LABEL_TMP!' instead of 'release' or 'unstable'"
-      exit 1
-    )
-  )
+if "%ANACONDA_UPLOAD%" == "openalea" if not "%ANACONDA_LABEL%" == "unstable" if not "%ANACONDA_LABEL%" == "release" (
+    echo "Variable ANACONDA_LABEL set to '%ANACONDA_LABEL%' instead of 'release' or 'unstable'"
+    exit 1
 )
 
 if not "%ANACONDA_UPLOAD%" == "openalea" (
     conda config --add channels openalea
     if errorlevel 1 exit 1
-    conda config --add channels openalea/label/unstable
-    if errorlevel 1 exit 1
-    conda config --add channels %ANACONDA_UPLOAD%
-    if errorlevel 1 exit 1
-    if not "!ANACONDA_LABEL_TMP!" == "main" (
-      conda config --add channels %ANACONDA_UPLOAD%/label/!ANACONDA_LABEL_TMP!
-      if errorlevel 1 exit 1
+    if not "%ANACONDA_LABEL%" == "release" (
+        conda config --add channels openalea/label/unstable
+        if errorlevel 1 exit 1
     )
-) else (
-    conda config --add channels openalea 
-    if errorlevel 1 exit 1
-    if "!ANACONDA_LABEL_TMP!" == "release" (
-        set ANACONDA_LABEL_TMP=win-%ARCH%_release
-        set ANACONDA_RELEASE=true
-    )
-    conda config --add channels openalea/label/!ANACONDA_LABEL_TMP!
-    if errorlevel 1 exit 1
 )
 
-endlocal && set ANACONDA_LABEL=%ANACONDA_LABEL_TMP%
+conda config --add channels %ANACONDA_UPLOAD%
+if errorlevel 1 exit 1
+if not "%ANACONDA_LABEL%" == "main" (
+    if "%ANACONDA_LABEL%" == "release" (
+        conda config --add channels %ANACONDA_UPLOAD%/label/win-%ARCH%_release
+        if errorlevel 1 exit 1
+    ) else (
+        conda config --add channels %ANACONDA_UPLOAD%/label/%ANACONDA_LABEL%
+        if errorlevel 1 exit 1
+    )
+)

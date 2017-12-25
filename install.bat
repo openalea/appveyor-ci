@@ -77,12 +77,11 @@ if not "%ANACONDA_CHANNELS%"=="" (
 conda config --set always_yes yes
 if errorlevel 1 exit 1
 
-REM conda update conda
+conda install conda=4.3.30
+
+python release.py
 if errorlevel 1 exit 1
-if "%ANACONDA_LABEL%" == "release" (
-  python release.py
-  if errorlevel 1 exit 1
-)
+
 call config.bat
 if errorlevel 1 exit 1
 
@@ -98,7 +97,7 @@ if errorlevel 1 exit 1
 set CMD_IN_ENV=cmd /E:ON /V:ON /C %cd%\\cmd_in_env.cmd
 if errorlevel 1 exit 1
 
-conda install conda-build anaconda-client
+conda install conda=4.3.30 conda-build=3.0.30 anaconda-client
 if errorlevel 1 exit 1
 
 echo OFF
