@@ -20,32 +20,42 @@
 :: mplied. See the License for the specific language governing           ::
 :: permissions and limitations under the License.                        ::
 
-if "%ANACONDA_UPLOAD%" == "openalea" if not "%ANACONDA_LABEL%" == "release" if not "%ANACONDA_LABEL%" == "unstable" (
+set ANACONDA_FORCE=true
+
+if "%ANACONDA_OWNER%" == "openalea" if not "%ANACONDA_LABEL%" == "release" if not "%ANACONDA_LABEL%" == "unstable" (
     echo "Variable ANACONDA_LABEL set to '%ANACONDA_LABEL%' instead of 'release' or 'unstable'"
     exit 1
 )
-if "%ANACONDA_UPLOAD%" == "openalea" if not "%ANACONDA_LABEL%" == "unstable" if not "%ANACONDA_LABEL%" == "release" (
+if "%ANACONDA_OWNER%" == "openalea" if not "%ANACONDA_LABEL%" == "unstable" if not "%ANACONDA_LABEL%" == "release" (
     echo "Variable ANACONDA_LABEL set to '%ANACONDA_LABEL%' instead of 'release' or 'unstable'"
     exit 1
 )
 
-if not "%ANACONDA_UPLOAD%" == "openalea" (
-    conda config --add channels openalea
+if "%ANACONDA_LABEL%" == "release" (
+    if "%APPVEYOR_REPO_BRANCH%" == "master" (
+        set OLD_BUILD_STRING=false
+        set ANACONDA_LABEL_ARG=win-%ARCH%_release
+    ) else (
+        set OLD_BUILD_STRING=true
+        set ANACONDA_LABEL_ARG=unstable
+    )
+) else (
+    set OLD_BUILD_STRING=true
+    set ANACONDA_LABEL_ARG=%ANACONDA_LABEL%
+)
+
+if not "%ANACONDA_OWNER%" == "openalea" (
+    conda.exe config --add channels openalea
     if errorlevel 1 exit 1
     if not "%ANACONDA_LABEL%" == "release" (
-        conda config --add channels openalea/label/unstable
+        conda.exe config --add channels openalea/label/unstable
         if errorlevel 1 exit 1
     )
 )
 
-conda config --add channels %ANACONDA_UPLOAD%
+conda.exe config --add channels %ANACONDA_OWNER%
 if errorlevel 1 exit 1
 if not "%ANACONDA_LABEL%" == "main" (
-    if "%ANACONDA_LABEL%" == "release" (
-        conda config --add channels %ANACONDA_UPLOAD%/label/win-%ARCH%_release
-        if errorlevel 1 exit 1
-    ) else (
-        conda config --add channels %ANACONDA_UPLOAD%/label/%ANACONDA_LABEL%
-        if errorlevel 1 exit 1
-    )
+    conda.exe config --add channels %ANACONDA_OWNER%/label/%ANACONDA_LABEL_ARG%
+    if errorlevel 1 exit 1
 )

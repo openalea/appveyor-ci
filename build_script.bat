@@ -23,16 +23,12 @@
 echo ON
 
 if not "%CONDA_RECIPE%"=="" (
-  %CMD_IN_ENV% conda build --old-build-string --python=%PYTHON_VERSION% ..\%CONDA_RECIPE%
+  %CMD_IN_ENV% conda build %OLD_BUILD_STRING_ARG% --python=%PYTHON_VERSION% ..\%CONDA_RECIPE%
   if errorlevel 1 exit 1
 )
 
 if not "%JUPYTER_NOTEBOOK%" == "" (
-  if not "%CONDA_ENVIRONMENT%" == "" (
-    activate appveyor-ci
-    if errorlevel 1 exit 1
-  )
-  jupyter nbconvert --ExecutePreprocessor.kernel_name="python%CONDA_VERSION%" --ExecutePreprocessor.timeout=0 --to notebook --execute ..\%JUPYTER_NOTEBOOK% --output ..\%JUPYTER_NOTEBOOK%
+  jupyter nbconvert --ExecutePreprocessor.kernel_name=%JUPYTER_KERNEL% --ExecutePreprocessor.timeout=0 --to notebook --execute --inplace ..\%JUPYTER_NOTEBOOK%
   if errorlevel 1 exit 1
 )
 

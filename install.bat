@@ -22,23 +22,24 @@
 
 echo ON
 
-set "CWD_VAR=%cd%"
-cd %APPVEYOR_BUILD_FOLDER%
-git submodule update --init --recursive
-cd %CWD_VAR%
+:: set CONDA_PIN=4.3.30
+:: set CONDA_BUILD_PIN=3.0.30
+:: set ANACONDA_CLIENT_PIN=1.6.5
+
+git -C %APPVEYOR_BUILD_FOLDER% submodule update --init --recursive
 
 if "%CONDA_VERSION%" == "" (
   set CONDA_VERSION=2
 )
 
-if not "%ANACONDA_USERNAME%" == "" (
-  if "%ANACONDA_UPLOAD%" == "" (
-    set ANACONDA_UPLOAD=%ANACONDA_USERNAME%
+if not "%ANACONDA_LOGIN%" == "" (
+  if "%ANACONDA_OWNER%" == "" (
+    set ANACONDA_OWNER=%ANACONDA_LOGIN%
   )
 )
 
 if "%ANACONDA_DEPLOY%" == "" (
-    if not "%ANACONDA_USERNAME%" == "" (
+    if not "%ANACONDA_LOGIN%" == "" (
         set ANACONDA_DEPLOY=true
     ) else (
         set ANACONDA_DEPLOY=false
@@ -59,7 +60,16 @@ if "%PLATFORM%" == "x86" (
   set ARCH=x86_64
 )
 
-rmdir /s /q C:\Miniconda
+if "%JUPYTER_KERNEL%" == "" (
+  if "%CONDA_VERSION%" == "" (
+    set JUPYTER_KERNEL=python2
+  ) else (
+    set JUPYTER_KERNEL=python%CONDA_VERSION%
+  )
+)
+
+
+if "%CI%" == "True" rmdir /s /q C:\Miniconda
 if errorlevel 1 exit 1
 curl https://repo.continuum.io/miniconda/Miniconda%CONDA_VERSION%-latest-Windows-%ARCH%.exe -o miniconda.exe
 if errorlevel 1 exit 1
@@ -69,22 +79,51 @@ del miniconda.exe
 if errorlevel 1 exit 1
 set PATH=%HOMEDRIVE%\Miniconda;%HOMEDRIVE%\Miniconda\Scripts;%PATH%
 if errorlevel 1 exit 1
-call %HOMEDRIVE%\Miniconda\Scripts\activate.bat root
+:: call %HOMEDRIVE%\Miniconda\Scripts\activate.bat
+call activate.bat
 if not "%ANACONDA_CHANNELS%"=="" (
-  conda config --add channels %ANACONDA_CHANNELS%
+  conda.exe config --add channels %ANACONDA_CHANNELS%
   if errorlevel 1 exit 1
 )
-conda config --set always_yes yes
+conda.exe config --set always_yes yes
+if errorlevel 1 exit 1
+conda.exe config --set remote_read_timeout_secs 600
+if errorlevel 1 exit 1
+conda.exe config --set auto_update_conda False
 if errorlevel 1 exit 1
 
-conda install conda=4.3.30
+if not "%CONDA_PIN%" == "" conda.exe install conda=%CONDA_PIN%
+if not "%CONDA_BUILD_PIN%" == "" (
+  conda.exe install conda-build=%CONDA_BUILD_PIN% 
+) else (
+  conda.exe install conda-build
+)
 
-python release.py
+if errorlevel 1 exit 1
+call activate.bat
 if errorlevel 1 exit 1
 
 call config.bat
 if errorlevel 1 exit 1
 
+if "%CI%" == "True" (
+  python release.py
+  if errorlevel 1 exit 1
+)
+
+if not "%CI%" == "True" (
+    conda.exe create -n py%CONDA_VERSION%k python=%CONDA_VERSION%
+    if errorlevel 1 exit 1
+    call activate.bat py%CONDA_VERSION%k
+    if errorlevel 1 exit 1
+)
+if not "%ANACONDA_CLIENT_PIN%" == "" (
+    conda.exe install anaconda-client=$ANACONDA_CLIENT_PIN
+    if errorlevel 1 exit 1
+) else (
+    conda.exe install anaconda-client
+    if errorlevel 1 exit 1
+)
 for /f %%i in ('python major_python_version.py') DO (set MAJOR_PYTHON_VERSION=%%i)
 if errorlevel 1 exit 1
 
@@ -97,7 +136,14 @@ if errorlevel 1 exit 1
 set CMD_IN_ENV=cmd /E:ON /V:ON /C %cd%\\cmd_in_env.cmd
 if errorlevel 1 exit 1
 
-conda install conda=4.3.30 conda-build=3.0.30 anaconda-client
+if not "%CONDA_PACKAGES%" == "" (
+  conda.exe install %CONDA_PACKAGES%
+  if errorlevel 1 exit 1
+  call activate.bat
+  if errorlevel 1 exit 1
+)
+
+call post_config.bat
 if errorlevel 1 exit 1
 
 echo OFF
