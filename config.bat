@@ -33,14 +33,20 @@ if "%ANACONDA_OWNER%" == "openalea" if not "%ANACONDA_LABEL%" == "unstable" if n
 
 if "%ANACONDA_LABEL%" == "release" (
     if "%APPVEYOR_REPO_BRANCH%" == "master" (
-        set OLD_BUILD_STRING=false
+        if "%OLD_BUILD_STRING%" == "" (
+            set OLD_BUILD_STRING=false
+        )
         set ANACONDA_LABEL_ARG=win-%ARCH%_release
     ) else (
-        set OLD_BUILD_STRING=true
+        if "%OLD_BUILD_STRING%" == "" (
+            set OLD_BUILD_STRING=true
+        )
         set ANACONDA_LABEL_ARG=unstable
     )
 ) else (
-    set OLD_BUILD_STRING=true
+    if "%OLD_BUILD_STRING%" == "" (
+        set OLD_BUILD_STRING=false
+    )
     set ANACONDA_LABEL_ARG=%ANACONDA_LABEL%
 )
 

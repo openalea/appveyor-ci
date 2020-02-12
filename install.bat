@@ -22,6 +22,11 @@
 
 echo ON
 
+for /f %%d in ('dir /b "C:\Python*"') do rd  /s /q "C:\%%d"
+call "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd" /x64
+call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86_amd64
+if errorlevel 1 exit 1
+
 :: set CONDA_PIN=4.3.30
 :: set CONDA_BUILD_PIN=3.0.30
 :: set ANACONDA_CLIENT_PIN=1.6.5
