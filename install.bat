@@ -76,7 +76,7 @@ if "%JUPYTER_KERNEL%" == "" (
 
 if "%CI%" == "True" rmdir /s /q C:\Miniconda
 if errorlevel 1 exit 1
-curl https://repo.continuum.io/miniconda/Miniconda%CONDA_VERSION%-latest-Windows-%ARCH%.exe -o miniconda.exe
+curl https://repo.anaconda.com/miniconda/Miniconda%CONDA_VERSION%-latest-Windows-%ARCH%.exe -o miniconda.exe
 if errorlevel 1 exit 1
 miniconda.exe /AddToPath=1 /InstallationType=JustMe /RegisterPython=0 /S /D=%HOMEDRIVE%\Miniconda 
 if errorlevel 1 exit 1
