@@ -121,7 +121,7 @@ if "%CONDA_PY%" == "" (
 )
 
 if not "%CI%" == "True" (
-    conda.exe create -n py%CONDA_VERSION%k python=%CONDA_PY%
+    conda.exe create -n py%CONDA_VERSION%k python=%CONDA_VERSION%
     if errorlevel 1 exit 1
     call activate.bat py%CONDA_VERSION%k
     if errorlevel 1 exit 1
@@ -139,8 +139,14 @@ if errorlevel 1 exit 1
 for /f %%i in ('python minor_python_version.py') DO (set MINOR_PYTHON_VERSION=%%i)
 if errorlevel 1 exit 1
 
-set PYTHON_VERSION=%MAJOR_PYTHON_VERSION%.%MINOR_PYTHON_VERSION%
-set CONDA_PY=%MAJOR_PYTHON_VERSION%%MINOR_PYTHON_VERSION%
+if "%CONDA_PY%" == "" (
+    set CONDA_PY=%MAJOR_PYTHON_VERSION%%MINOR_PYTHON_VERSION%
+)
+
+if "%PYTHON_VERSION%" == "" (
+    set PYTHON_VERSION=%CONDA_PY:~0,1%.%CONDA_PY:~1,1%
+)
+
 if errorlevel 1 exit 1
 
 set CMD_IN_ENV=cmd /E:ON /V:ON /C %cd%\\cmd_in_env.cmd
