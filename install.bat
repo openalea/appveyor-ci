@@ -34,7 +34,7 @@ if errorlevel 1 exit 1
 git -C %APPVEYOR_BUILD_FOLDER% submodule update --init --recursive
 
 if "%CONDA_VERSION%" == "" (
-  set CONDA_VERSION=2
+  set CONDA_VERSION=3
 )
 
 if not "%ANACONDA_LOGIN%" == "" (
@@ -116,8 +116,12 @@ if "%CI%" == "True" (
   if errorlevel 1 exit 1
 )
 
+if "%CONDA_PY%" == "" (
+    set CONDA_PY=%CONDA_VERSION%
+)
+
 if not "%CI%" == "True" (
-    conda.exe create -n py%CONDA_VERSION%k python=%CONDA_VERSION%
+    conda.exe create -n py%CONDA_VERSION%k python=%CONDA_PY%
     if errorlevel 1 exit 1
     call activate.bat py%CONDA_VERSION%k
     if errorlevel 1 exit 1
@@ -136,6 +140,7 @@ for /f %%i in ('python minor_python_version.py') DO (set MINOR_PYTHON_VERSION=%%
 if errorlevel 1 exit 1
 
 set PYTHON_VERSION=%MAJOR_PYTHON_VERSION%.%MINOR_PYTHON_VERSION%
+set CONDA_PY=%MAJOR_PYTHON_VERSION%%MINOR_PYTHON_VERSION%
 if errorlevel 1 exit 1
 
 set CMD_IN_ENV=cmd /E:ON /V:ON /C %cd%\\cmd_in_env.cmd
